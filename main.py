@@ -12,9 +12,9 @@ load_dotenv()
 
 # ── DB 設定 ──────────────────────────────────────────────
 DB_SERVER   = os.getenv("DB_SERVER",   "163.17.141.61,8000")
-DB_NAME     = os.getenv("DB_NAME",     "gemio")
-DB_USER     = os.getenv("DB_USER",     "drcas")
-DB_PASS     = os.getenv("DB_PASSWORD", "")
+DB_NAME     = os.getenv("DB_NAME",     "gemio23")
+DB_USER     = os.getenv("DB_USER",     "nutc23")
+DB_PASS     = os.getenv("DB_PASSWORD", "Nutc@2026")
 
 # ── 快取 ─────────────────────────────────────────────────
 _schema_cache: dict  = {}
