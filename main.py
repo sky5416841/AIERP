@@ -45,9 +45,9 @@ def load_schema():
         cursor.execute("""
             SELECT TABLE_NAME, TABLE_TYPE
             FROM   INFORMATION_SCHEMA.TABLES
-            WHERE  TABLE_CATALOG = %s AND TABLE_TYPE = 'VIEW'
-            ORDER  BY TABLE_TYPE DESC, TABLE_NAME
-        """, (DB_NAME,))
+            WHERE  TABLE_TYPE = 'VIEW'
+            ORDER  BY TABLE_NAME
+        """)
         tables        = cursor.fetchall()
         _tables_cache = [{"name": t[0], "type": t[1]} for t in tables]
 
@@ -56,9 +56,9 @@ def load_schema():
             cursor.execute("""
                 SELECT COLUMN_NAME, DATA_TYPE
                 FROM   INFORMATION_SCHEMA.COLUMNS
-                WHERE  TABLE_CATALOG = %s AND TABLE_NAME = %s
+                WHERE  TABLE_NAME = %s
                 ORDER  BY ORDINAL_POSITION
-            """, (DB_NAME, tbl[0]))
+            """, (tbl[0],))
             schema[tbl[0]] = [
                 {"name": c[0], "type": c[1]} for c in cursor.fetchall()
             ]
