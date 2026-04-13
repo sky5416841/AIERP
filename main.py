@@ -45,7 +45,7 @@ def load_schema():
         cursor.execute("""
             SELECT TABLE_NAME, TABLE_TYPE
             FROM   INFORMATION_SCHEMA.TABLES
-            WHERE  TABLE_CATALOG = %s AND TABLE_TYPE IN ('BASE TABLE','VIEW')
+            WHERE  TABLE_CATALOG = %s AND TABLE_TYPE = 'VIEW'
             ORDER  BY TABLE_TYPE DESC, TABLE_NAME
         """, (DB_NAME,))
         tables        = cursor.fetchall()
