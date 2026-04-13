@@ -3,7 +3,7 @@ import io
 from fastapi import FastAPI, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, StreamingResponse
-import anthropic
+import google.generativeai as genai
 import pyodbc
 import openpyxl
 from dotenv import load_dotenv
@@ -97,12 +97,11 @@ async def query(request: Request, question: str = Form(...)):
     totals:  dict = {}
 
     try:
-        # ── 1. Claude → SQL ──────────────────────────────
-        ai_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-        resp = ai_client.messages.create(
-            model="claude-sonnet-4-6",
-            max_tokens=2048,
-            system=f"""你是一個 SQL Server T-SQL 查詢助手。
+        # ── 1. Gemini → SQL ──────────────────────────────
+        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+        model = genai.GenerativeModel(
+            model_name="gemini-2.5-flash",
+            system_instruction=f"""你是一個 SQL Server T-SQL 查詢助手。
 資料庫名稱: {DB_NAME}（SQL Server）
 Schema（資料表/欄位）:
 {schema_text()}
@@ -112,9 +111,9 @@ Schema（資料表/欄位）:
 2. 預設加上 TOP 1000 限制
 3. 日期格式使用 CONVERT(varchar, column, 111)
 4. 若無法判斷，輸出: SELECT '無法理解此查詢，請重新描述' AS 訊息""",
-            messages=[{"role": "user", "content": question}],
         )
-        sql = resp.content[0].text.strip()
+        resp = model.generate_content(question)
+        sql = resp.text.strip()
         # 移除可能的 markdown code block
         if "```" in sql:
             sql = sql.split("```")[1]
