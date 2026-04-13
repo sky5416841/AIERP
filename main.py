@@ -4,7 +4,7 @@ from fastapi import FastAPI, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, StreamingResponse
 import google.generativeai as genai
-import pyodbc
+import pymssql
 import openpyxl
 from dotenv import load_dotenv
 
@@ -23,13 +23,17 @@ _last_results: dict  = {"columns": [], "rows": [], "sql": ""}
 
 # ── DB 連線 ───────────────────────────────────────────────
 def get_connection():
-    conn_str = (
-        "DRIVER={ODBC Driver 17 for SQL Server};"
-        f"SERVER={DB_SERVER};DATABASE={DB_NAME};"
-        f"UID={DB_USER};PWD={DB_PASS};"
-        "TrustServerCertificate=yes;"
+    # DB_SERVER 格式: "163.17.141.61,8000" → host/port 分開
+    host, port = DB_SERVER.replace(" ", "").split(",")
+    return pymssql.connect(
+        host=host,
+        port=int(port),
+        user=DB_USER,
+        password=DB_PASS,
+        database=DB_NAME,
+        login_timeout=15,
+        as_dict=False,
     )
-    return pyodbc.connect(conn_str, timeout=15)
 
 # ── 載入 Schema ───────────────────────────────────────────
 def load_schema():
@@ -41,9 +45,9 @@ def load_schema():
         cursor.execute("""
             SELECT TABLE_NAME, TABLE_TYPE
             FROM   INFORMATION_SCHEMA.TABLES
-            WHERE  TABLE_CATALOG = ? AND TABLE_TYPE IN ('BASE TABLE','VIEW')
+            WHERE  TABLE_CATALOG = %s AND TABLE_TYPE IN ('BASE TABLE','VIEW')
             ORDER  BY TABLE_TYPE DESC, TABLE_NAME
-        """, DB_NAME)
+        """, (DB_NAME,))
         tables        = cursor.fetchall()
         _tables_cache = [{"name": t[0], "type": t[1]} for t in tables]
 
@@ -52,9 +56,9 @@ def load_schema():
             cursor.execute("""
                 SELECT COLUMN_NAME, DATA_TYPE
                 FROM   INFORMATION_SCHEMA.COLUMNS
-                WHERE  TABLE_CATALOG = ? AND TABLE_NAME = ?
+                WHERE  TABLE_CATALOG = %s AND TABLE_NAME = %s
                 ORDER  BY ORDINAL_POSITION
-            """, DB_NAME, tbl[0])
+            """, (DB_NAME, tbl[0]))
             schema[tbl[0]] = [
                 {"name": c[0], "type": c[1]} for c in cursor.fetchall()
             ]
