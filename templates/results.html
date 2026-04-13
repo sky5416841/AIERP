@@ -1,0 +1,83 @@
+{% if error %}
+<!-- ── 錯誤訊息 ──────────────────────────────────────────── -->
+<div class="main-card border-danger border">
+  <h6 class="text-danger fw-bold mb-2">⚠ 查詢錯誤</h6>
+  <pre class="text-danger mb-0" style="white-space:pre-wrap;font-size:.85rem;">{{ error }}</pre>
+  {% if sql %}
+  <hr>
+  <p class="small text-muted mb-1">產生的 SQL：</p>
+  <pre class="sql-box mb-0">{{ sql }}</pre>
+  {% endif %}
+</div>
+
+{% else %}
+
+<!-- ── 3. 查詢結果 ──────────────────────────────────────── -->
+<div class="main-card">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 class="fw-bold mb-0">
+      查詢結果
+      <span class="badge bg-secondary ms-1" style="font-size:.75rem;">
+        {{ rows|length }} 筆
+      </span>
+    </h6>
+    {% if rows %}
+    <a href="/export" class="btn btn-success btn-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor"
+           class="me-1" viewBox="0 0 16 16">
+        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
+      </svg>
+      匯出 Excel
+    </a>
+    {% endif %}
+  </div>
+
+  {% if rows %}
+  <div class="table-wrap">
+    <table class="table table-sm table-hover table-bordered result-table mb-0">
+      <thead>
+        <tr>
+          {% for col in columns %}
+          <th>{{ col }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          {% for cell in row %}
+          <td>{{ cell }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+      {% if totals %}
+      <tfoot>
+        <tr>
+          {% for i in range(columns|length) %}
+            {% if i in totals %}
+            <td class="text-end">合計: {{ totals[i] }}</td>
+            {% else %}
+            <td></td>
+            {% endif %}
+          {% endfor %}
+        </tr>
+      </tfoot>
+      {% endif %}
+    </table>
+  </div>
+  {% else %}
+  <p class="text-muted mb-0 text-center py-3">查無資料</p>
+  {% endif %}
+</div>
+
+<!-- ── 4. SQL 語句 ──────────────────────────────────────── -->
+{% if sql %}
+<div class="main-card">
+  <h6 class="fw-bold mb-2 text-secondary small text-uppercase">產生的 SQL 語句</h6>
+  <pre class="sql-box mb-0">{{ sql }}</pre>
+</div>
+{% endif %}
+
+{% endif %}
